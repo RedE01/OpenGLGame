@@ -17,99 +17,120 @@ modelData * GameObject::getModelData() {
 }
 
 modelData GameObject::generateModelData(const char * modelPath) {
-	std::vector<std::array<float, 3>> positions;
-	std::vector<std::array<float, 3>> textures;
-	std::vector<std::array<float, 3>> normals;
+	std::fstream stream;
+	stream.open(modelPath);
+	std::stringstream ss;
+
+	ss << stream.rdbuf();
+	stream.close();
+
+	std::string temp = ss.str();
+	const char* fileDataString = temp.c_str();
+
+	float number = 0.0f;
+	float decimalMult = -1.0f;
+	float sign = 1.0f;
+
 	std::vector<float> vert;
-	unsigned int indiciesCount = 0;
+	std::vector<float> textures;
+	std::vector<float> normals;
 
-	std::ifstream test;
-	test.open(modelPath);
+	std::vector<float> verticies;
 
-	enum DataType {
+	enum NumType {
 		NONE = -1, V = 0, VT = 1, VN = 2, F = 3
 	};
-	DataType type = DataType::NONE;
-	int startPos = 0;
-	std::string line;
-	if (test.is_open()) {
-		while (getline(test, line)) {
-			if (line.substr(0, 2) == "v ") {
-				type = DataType::V;
-				startPos = 2;
-			}
-			else if (line.substr(0, 3) == "vt ") {
-				type = DataType::VT;
-				startPos = 3;
-			}
-			else if (line.substr(0, 3) == "vn ") {
-				type = DataType::VN;
-				startPos = 3;
+	NumType type = NumType::NONE;
+
+	unsigned int numb = 0;
+	unsigned int len = strlen(fileDataString);
+	for (unsigned int i = 0; i < len; i++) {
+		if (fileDataString[i] >= '0' && fileDataString[i] <= '9') {
+			if (decimalMult == -1) {
+				number = number * 10.0f + fileDataString[i] - '0';
 			}
 			else {
-				type = DataType::NONE;
+				number = number + (fileDataString[i] - '0') * decimalMult;
+				decimalMult *= 0.1f;
 			}
+		}
+		else if (fileDataString[i] == '.') {
+			decimalMult = 0.1f;
+		}
+		else if (fileDataString[i] == '-') {
+			sign = -1.0f;
+		}
+		else if (fileDataString[i] == ' ' || fileDataString[i] == '\n' || fileDataString[i] == '/') {
+			number = number * sign;
 
-			if (line.substr(0, 2) == "f ") {
-				std::stringstream linestream(line.substr(2));
-				std::string segment;
-				while (std::getline(linestream, segment, ' ')) {
-					std::stringstream segmentstream(segment);
-					std::string segpart;
-					indiciesCount++;
-					for (int i = 0; std::getline(segmentstream, segpart, '/'); i++) {
-						int number = std::stoi(segpart);
-						switch (i) {
+			if (type != NumType::NONE) {
+				switch (type) {
+				case NumType::V:
+					vert.push_back(number);
+					break;
+				case NumType::VT:
+					textures.push_back(number);
+					break;
+				case NumType::VN:
+					normals.push_back(number);
+					break;
+				case NumType::F:
+					for (unsigned int j = 0; j < 3; j++) {
+						unsigned int index = (number - 1) * 3 + j;
+						switch (numb) {
 						case 0:
-							for (int j = 0; j < 3; j++) {
-								vert.push_back(positions[number - 1][j]);
-							}
+							verticies.push_back(vert[index]);
 							break;
 						case 1:
-							for (int j = 0; j < 3; j++) {
-								vert.push_back(textures[number - 1][j]);
-							}
+							verticies.push_back(textures[index]);
 							break;
 						case 2:
-							for (int j = 0; j < 3; j++) {
-								vert.push_back(normals[number - 1][j]);
-							}
+							verticies.push_back(normals[index]);
 							break;
 						}
 					}
+					numb++;
+					if (numb > 2) numb = 0;
 				}
 			}
 
-			if (type != DataType::NONE) {
-				std::istringstream v(line.substr(startPos));
+			decimalMult = -1.0f;
+			number = 0.0f;
+			sign = 1.0f;
 
-				std::array<float, 3> temp;
-				for (int i = 0; i < 3; i++) {
-					v >> temp[i];
+			if (fileDataString[i] == '\n') {
+				if (fileDataString[i + 1] == 'v') {
+					int offset = 2;
+					if (fileDataString[i + 2] == 't') {
+						type = NumType::VT;
+						offset = 3;
+					}
+					else if (fileDataString[i + 2] == 'n') {
+						type = NumType::VN;
+						offset = 3;
+					}
+					else {
+						type = NumType::V;
+					}
+					i += offset;
 				}
-				switch (type) {
-				case DataType::V:
-					positions.push_back(temp);
-					break;
-				case DataType::VT:
-					textures.push_back(temp);
-					break;
-				case DataType::VN:
-					normals.push_back(temp);
-					break;
+				else if (fileDataString[i + 1] == 'f') {
+					type = NumType::F;
+					i += 2;
+				}
+				else {
+					type = NumType::NONE;
 				}
 			}
 		}
-		test.close();
 	}
 
-	float* verticies = &vert[0];
-	unsigned int verticiesCount = vert.size();
+	unsigned int vertCount = verticies.size();
+	unsigned int indexCount = vertCount / 9;
 
-	unsigned int* indicies = new unsigned int[indiciesCount];
-
-	for (int i = 0; i < indiciesCount; i++) {
+	unsigned int* indicies = new unsigned int[indexCount];
+	for (unsigned int i = 0; i < indexCount; i++) {
 		indicies[i] = i;
 	}
-	return { vert, verticiesCount, indicies, indiciesCount };
+	return { verticies, vertCount, indicies, indexCount };
 }

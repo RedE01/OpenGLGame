@@ -1194,9 +1194,4 @@
     </None>
     <None Include="res\shaders\Basic.shader" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="res\img\CrateTexture.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
 </Project>

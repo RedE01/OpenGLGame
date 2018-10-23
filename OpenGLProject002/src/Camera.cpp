@@ -7,7 +7,7 @@ Camera::Camera(glm::vec3 pos, float yaw, float pitch, float fov, float aspectRat
 }
 
 void Camera::processInput(GLFWwindow* window, float& deltaTime) {
-	float movementSpeed = 30.0f * deltaTime;
+	float movementSpeed = 10.0f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W)) {
 		move(0.0f, 0.0f, movementSpeed);
 	}
@@ -20,6 +20,12 @@ void Camera::processInput(GLFWwindow* window, float& deltaTime) {
 	if (glfwGetKey(window, GLFW_KEY_D)) {
 		move(movementSpeed, 0.0f, 0.0f);
 	}
+	if (glfwGetKey(window, GLFW_KEY_Q)) {
+		move(0.0f, -movementSpeed, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_E)) {
+		move(0.0f, movementSpeed, 0.0f);
+	}
 }
 
 void Camera::move(float x, float y, float z) {
@@ -27,6 +33,10 @@ void Camera::move(float x, float y, float z) {
 		glm::vec3 movement = glm::cross(cameraFront, m_cameraUp);
 		movement = glm::normalize(glm::vec3(movement.x, movement.y, movement.z));
 		m_cameraPos += movement * x;
+	}
+	if (y) {
+		glm::vec3 movement = glm::normalize(glm::vec3(m_cameraUp.x, m_cameraUp.y, m_cameraUp.z));
+		m_cameraPos += movement * y;
 	}
 	if (z) {
 		glm::vec3 movement = glm::normalize(glm::vec3(cameraFront.x, cameraFront.y, cameraFront.z));

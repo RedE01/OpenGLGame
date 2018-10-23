@@ -43,7 +43,7 @@ int main(void) {
 		glfwTerminate();
 	}
 
-	GameObject o("res/models/Terrain001.obj");
+	GameObject o("res/models/GoodShrek.obj");
 
 	unsigned int vb;
 	GLCall(glGenBuffers(1, &vb));
@@ -105,6 +105,8 @@ int main(void) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+
+	glPolygonMode(GL_FRONT, GL_LINE);
 
 	float rotX = 0;
 	float rotY = 0;
