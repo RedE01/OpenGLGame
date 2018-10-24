@@ -25,7 +25,7 @@ int main(void) {
 		return -1;
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(960, 720, "HELLO ldshglkusd", NULL, NULL);
+	window = glfwCreateWindow(960, 720, "OpenGLProject", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -43,33 +43,18 @@ int main(void) {
 		glfwTerminate();
 	}
 
-	GameObject o("res/models/GoodShrek.obj");
-
-	unsigned int vb;
-	GLCall(glGenBuffers(1, &vb));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, o.m_modelData.verticiesCount * sizeof(float), &o.m_modelData.vert[0], GL_DYNAMIC_DRAW));
-
-	GLCall(glEnableVertexAttribArray(0));
-	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), 0));
-	GLCall(glEnableVertexAttribArray(1));
-	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float))));
-	GLCall(glEnableVertexAttribArray(2));
-	GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float))));
-
-	unsigned int ib;
-	GLCall(glGenBuffers(1, &ib));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, o.m_modelData.indiciesCount * sizeof(float), o.m_modelData.indicies, GL_DYNAMIC_DRAW));
+	Model shrekModel("res/models/GoodShrek.obj");
+	GameObject object1(&shrekModel);
+	GameObject object2(&shrekModel);
 
 	std::string shaderPath = "res/shaders/Basic.shader";
 	Shader shader(shaderPath);
 
-	Camera camera(glm::vec3(0.0f, 10.0f, 0.0f), 0.0f, 0.0f, 90.0f, 4.0f / 3.0f, 0.1f, 250.0f, input::mouseX, input::mouseY);
+	Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 90.0f, 4.0f / 3.0f, 0.1f, 250.0f, input::mouseX, input::mouseY);
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
 	glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	glm::mat4 MVP = camera.getProjMat() * camera.getViewMat() * model * rotationY;
 
@@ -108,10 +93,6 @@ int main(void) {
 
 	glPolygonMode(GL_FRONT, GL_LINE);
 
-	float rotX = 0;
-	float rotY = 0;
-	float rotZ = 0;
-
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
 		float currentTime = (float)glfwGetTime();
@@ -121,13 +102,8 @@ int main(void) {
 		camera.processInput(window, global::deltaTime);
 		camera.rotate(input::mouseDeltaX, input::mouseDeltaY);
 
-		/*rotX += 0.01f;
-		rotY += 0.01f;
-		rotZ += 0.01f;*/
-
-		rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(rotX), glm::vec3(1.0f, 0.0f, 0.0f));
-		rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
-		rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(rotZ), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, -5.0f));
+		rotationY = glm::rotate(rotationY, glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f));
 		MVP = camera.getProjMat() * camera.getViewMat() * model * rotationX * rotationY * rotationZ;
 		GLCall(glUniformMatrix4fv(mvpLocation, 1, false, &MVP[0][0]));
 
@@ -140,7 +116,13 @@ int main(void) {
 		}
 
 		//GLCall(glUseProgram(program));
-		GLCall(glDrawElements(GL_TRIANGLES, o.m_modelData.indiciesCount, GL_UNSIGNED_INT, nullptr));
+		object1.draw();
+
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, -5.0f));
+		MVP = camera.getProjMat() * camera.getViewMat() * model * rotationX * rotationY * rotationZ;
+		GLCall(glUniformMatrix4fv(mvpLocation, 1, false, &MVP[0][0]));
+
+		object2.draw();
 
 		/* Swap front and back buffers */
 		GLCall(glfwSwapBuffers(window));

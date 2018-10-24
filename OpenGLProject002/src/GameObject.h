@@ -1,23 +1,21 @@
 #pragma once
 #include <iostream>
-#include <memory>
-#include <vector>
-
-struct modelData {
-	std::vector<float> vert;
-	unsigned int verticiesCount;
-	unsigned int* indicies;
-	unsigned int indiciesCount;
-};
+#include "Model.h"
 
 class GameObject {
+private:
+	unsigned int m_vbo;
+	unsigned int m_ibo;
 public:
-	modelData m_modelData;
+	Model* m_model;
+	unsigned int m_vao;
 public: 
-	GameObject(const char* modelPath);
+	GameObject(Model* modelRef);
 	~GameObject();
 
-	modelData* getModelData();
+	void draw();
 private:
-	modelData generateModelData(const char* modelPath);
+	void generateVAO(unsigned int& va);
+	void generateVBO(unsigned int& vb, modelData* modelData);
+	void genertateIBO(unsigned int& ib, modelData* modelData);
 };

@@ -1,136 +1,43 @@
 #include "GameObject.h"
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <array>
+#include <GL\glew.h>
+#include "Debug.h"
 
-GameObject::GameObject(const char * modelPath) {
-	m_modelData = generateModelData(modelPath);
+
+GameObject::GameObject(Model* modelRef) 
+	: m_model(modelRef) {
+
+	generateVAO(m_vao);
+	generateVBO(m_vbo, &m_model->m_modelData);
+	genertateIBO(m_ibo, &m_model->m_modelData);
 }
 
 GameObject::~GameObject() {
 }
 
-modelData * GameObject::getModelData() {
-	return &m_modelData;
+void GameObject::draw() {
+	GLCall(glDrawElements(GL_TRIANGLES, m_model->m_modelData.indiciesCount, GL_UNSIGNED_INT, nullptr));
 }
 
-modelData GameObject::generateModelData(const char * modelPath) {
-	std::fstream stream;
-	stream.open(modelPath);
-	std::stringstream ss;
+void GameObject::generateVAO(unsigned int & va) {
+	glGenVertexArrays(1, &va);
+	glBindVertexArray(va);
+}
 
-	ss << stream.rdbuf();
-	stream.close();
+void GameObject::generateVBO(unsigned int & vb, modelData* modelData) {
+	GLCall(glGenBuffers(1, &vb));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, modelData->verticiesCount * sizeof(float), &modelData->vert[0], GL_DYNAMIC_DRAW));
 
-	std::string temp = ss.str();
-	const char* fileDataString = temp.c_str();
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), 0));
+	GLCall(glEnableVertexAttribArray(1));
+	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float))));
+	GLCall(glEnableVertexAttribArray(2));
+	GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float))));
+}
 
-	float number = 0.0f;
-	float decimalMult = -1.0f;
-	float sign = 1.0f;
-
-	std::vector<float> vert;
-	std::vector<float> textures;
-	std::vector<float> normals;
-
-	std::vector<float> verticies;
-
-	enum NumType {
-		NONE = -1, V = 0, VT = 1, VN = 2, F = 3
-	};
-	NumType type = NumType::NONE;
-
-	unsigned int numb = 0;
-	unsigned int len = strlen(fileDataString);
-	for (unsigned int i = 0; i < len; i++) {
-		if (fileDataString[i] >= '0' && fileDataString[i] <= '9') {
-			if (decimalMult == -1) {
-				number = number * 10.0f + fileDataString[i] - '0';
-			}
-			else {
-				number = number + (fileDataString[i] - '0') * decimalMult;
-				decimalMult *= 0.1f;
-			}
-		}
-		else if (fileDataString[i] == '.') {
-			decimalMult = 0.1f;
-		}
-		else if (fileDataString[i] == '-') {
-			sign = -1.0f;
-		}
-		else if (fileDataString[i] == ' ' || fileDataString[i] == '\n' || fileDataString[i] == '/') {
-			number = number * sign;
-
-			if (type != NumType::NONE) {
-				switch (type) {
-				case NumType::V:
-					vert.push_back(number);
-					break;
-				case NumType::VT:
-					textures.push_back(number);
-					break;
-				case NumType::VN:
-					normals.push_back(number);
-					break;
-				case NumType::F:
-					for (unsigned int j = 0; j < 3; j++) {
-						unsigned int index = (number - 1) * 3 + j;
-						switch (numb) {
-						case 0:
-							verticies.push_back(vert[index]);
-							break;
-						case 1:
-							verticies.push_back(textures[index]);
-							break;
-						case 2:
-							verticies.push_back(normals[index]);
-							break;
-						}
-					}
-					numb++;
-					if (numb > 2) numb = 0;
-				}
-			}
-
-			decimalMult = -1.0f;
-			number = 0.0f;
-			sign = 1.0f;
-
-			if (fileDataString[i] == '\n') {
-				if (fileDataString[i + 1] == 'v') {
-					int offset = 2;
-					if (fileDataString[i + 2] == 't') {
-						type = NumType::VT;
-						offset = 3;
-					}
-					else if (fileDataString[i + 2] == 'n') {
-						type = NumType::VN;
-						offset = 3;
-					}
-					else {
-						type = NumType::V;
-					}
-					i += offset;
-				}
-				else if (fileDataString[i + 1] == 'f') {
-					type = NumType::F;
-					i += 2;
-				}
-				else {
-					type = NumType::NONE;
-				}
-			}
-		}
-	}
-
-	unsigned int vertCount = verticies.size();
-	unsigned int indexCount = vertCount / 9;
-
-	unsigned int* indicies = new unsigned int[indexCount];
-	for (unsigned int i = 0; i < indexCount; i++) {
-		indicies[i] = i;
-	}
-	return { verticies, vertCount, indicies, indexCount };
+void GameObject::genertateIBO(unsigned int & ib, modelData* modelData) {
+	GLCall(glGenBuffers(1, &ib));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, modelData->indiciesCount * sizeof(float), modelData->indicies, GL_DYNAMIC_DRAW));
 }

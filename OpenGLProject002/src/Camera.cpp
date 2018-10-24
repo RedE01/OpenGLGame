@@ -7,7 +7,7 @@ Camera::Camera(glm::vec3 pos, float yaw, float pitch, float fov, float aspectRat
 }
 
 void Camera::processInput(GLFWwindow* window, float& deltaTime) {
-	float movementSpeed = 10.0f * deltaTime;
+	float movementSpeed = 5.0f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W)) {
 		move(0.0f, 0.0f, movementSpeed);
 	}
