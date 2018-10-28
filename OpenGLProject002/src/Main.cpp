@@ -43,23 +43,33 @@ int main(void) {
 		glfwTerminate();
 	}
 
+	Model terrainModel("res/models/Terrain001.obj");
+	GameObject object1(&terrainModel);
+	object1.m_translation = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -15.0f, 0.0f));
+
 	Model shrekModel("res/models/GoodShrek.obj");
-	GameObject object1(&shrekModel);
 	GameObject object2(&shrekModel);
+	object2.m_translation = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, -5.0f));
 
 	std::string shaderPath = "res/shaders/Basic.shader";
 	Shader shader(shaderPath);
 
 	Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 90.0f, 4.0f / 3.0f, 0.1f, 250.0f, input::mouseX, input::mouseY);
 
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
-	glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	glm::mat4 MVP = camera.getProjMat() * camera.getViewMat() * model * rotationY;
+	//glm::mat4 MVP = camera.getProjMat() * camera.getViewMat() * object1.m_translation * object1.m_rotationY;
+	GLCall(int viewLocation = glGetUniformLocation(shader.getProgramID(), "u_view"));
+	GLCall(glUniformMatrix4fv(viewLocation, 1, false, &camera.getViewMat()[0][0]));
 
-	GLCall(int mvpLocation = glGetUniformLocation(shader.getProgramID(), "u_MVP"));
-	GLCall(glUniformMatrix4fv(mvpLocation, 1, false, &MVP[0][0]));
+	GLCall(int projLocation = glGetUniformLocation(shader.getProgramID(), "u_proj"));
+	GLCall(glUniformMatrix4fv(projLocation, 1, false, &camera.getProjMat()[0][0]));
+
+	glm::mat4 model1 = object1.m_translation * object1.m_rotationX * object1.m_rotationY * object1.m_rotationZ;
+	glm::mat4 model2 = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
+	GLCall(int modelLocation = glGetUniformLocation(shader.getProgramID(), "u_model"));
+	GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1[0][0]));
+
+	GLCall(int lightLocation = glGetUniformLocation(shader.getProgramID(), "u_lightPos"));
+	GLCall(glUniform3f(lightLocation, 0.0f, 50.0f, 0.0f));
 
 	int width = 0;
 	int height = 0;
@@ -91,7 +101,13 @@ int main(void) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
-	glPolygonMode(GL_FRONT, GL_LINE);
+
+	std::cout << "obj1";
+	object1.m_model->printVertCount();
+	std::cout << "obj2";
+	object2.m_model->printVertCount();
+
+	//glPolygonMode(GL_FRONT, GL_LINE);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
@@ -102,10 +118,8 @@ int main(void) {
 		camera.processInput(window, global::deltaTime);
 		camera.rotate(input::mouseDeltaX, input::mouseDeltaY);
 
-		model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, -5.0f));
-		rotationY = glm::rotate(rotationY, glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f));
-		MVP = camera.getProjMat() * camera.getViewMat() * model * rotationX * rotationY * rotationZ;
-		GLCall(glUniformMatrix4fv(mvpLocation, 1, false, &MVP[0][0]));
+		GLCall(glUniformMatrix4fv(viewLocation, 1, false, &camera.getViewMat()[0][0]));
+		GLCall(glUniformMatrix4fv(projLocation, 1, false, &camera.getProjMat()[0][0]));
 
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -116,11 +130,16 @@ int main(void) {
 		}
 
 		//GLCall(glUseProgram(program));
+		glBindVertexArray(object1.m_vao);
+		model1 = object1.m_translation * object1.m_rotationX * object1.m_rotationY * object1.m_rotationZ;
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1[0][0]));
 		object1.draw();
 
-		model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, -5.0f));
-		MVP = camera.getProjMat() * camera.getViewMat() * model * rotationX * rotationY * rotationZ;
-		GLCall(glUniformMatrix4fv(mvpLocation, 1, false, &MVP[0][0]));
+		glBindVertexArray(object2.m_vao);
+		object2.m_rotationY = glm::rotate(object2.m_rotationY, glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//object2.m_translation = glm::translate(object2.m_translation, glm::vec3(0.0f, 0.0f, 0.0f));
+		model2 = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model2[0][0]));
 
 		object2.draw();
 

@@ -4,7 +4,11 @@
 
 
 GameObject::GameObject(Model* modelRef) 
-	: m_model(modelRef) {
+	: m_model(modelRef), 
+	m_translation(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))),
+	m_rotationX(glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))),
+	m_rotationY(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))),
+	m_rotationZ(glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f))) {
 
 	generateVAO(m_vao);
 	generateVBO(m_vbo, &m_model->m_modelData);
