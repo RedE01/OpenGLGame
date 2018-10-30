@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include "Texture.h"
 
 struct modelData {
 	std::vector<float> vert;
@@ -10,15 +11,15 @@ struct modelData {
 };
 
 class Model {
+private:
+	Texture* m_modelTexture;
 public:
 	modelData m_modelData;
 public:
-	Model(const char* modelPath);
+	Model(const char* modelPath, Texture* modelTexture);
 	~Model();
 
-	inline void printVertCount() {
-		std::cout << m_modelData.verticiesCount << std::endl;
-	}
+	Texture* getTexture();
 
 private:
 	modelData modelLoader(const char* modelPath);

@@ -3,9 +3,9 @@
 #include "Debug.h"
 
 
-GameObject::GameObject(Model* modelRef) 
-	: m_model(modelRef), 
-	m_translation(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))),
+GameObject::GameObject(Model* modelRef, float x, float y, float z) 
+	: m_model(modelRef), m_pos{x, y, z},
+	m_translation(glm::translate(glm::mat4(1.0f), m_pos)),
 	m_rotationX(glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))),
 	m_rotationY(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))),
 	m_rotationZ(glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f))) {
@@ -18,8 +18,20 @@ GameObject::GameObject(Model* modelRef)
 GameObject::~GameObject() {
 }
 
-void GameObject::draw() {
+void GameObject::draw(Shader& shader) {
+	m_model->getTexture()->use();
+	shader.setUniformFloat("u_tile", m_model->getTexture()->getTiles());
 	GLCall(glDrawElements(GL_TRIANGLES, m_model->m_modelData.indiciesCount, GL_UNSIGNED_INT, nullptr));
+}
+
+void GameObject::setPos(float x, float y, float z) {
+	m_pos = { x, y, z };
+	m_translation = glm::translate(glm::mat4(1.0f), m_pos);
+}
+
+void GameObject::move(float x, float y, float z) {
+	m_pos = m_pos + glm::vec3(x, y, z);
+	m_translation = glm::translate(glm::mat4(1.0f), m_pos);
 }
 
 void GameObject::generateVAO(unsigned int & va) {

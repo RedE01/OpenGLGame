@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "Input.h"
 #include "GameObject.h"
+#include "Texture.h"
 
 namespace global {
 	float deltaTime = 0.0f;
@@ -25,7 +26,7 @@ int main(void) {
 		return -1;
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(960, 720, "OpenGLProject", NULL, NULL);
+	window = glfwCreateWindow(1280, 720, "OpenGLProject", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -43,105 +44,102 @@ int main(void) {
 		glfwTerminate();
 	}
 
-	Model terrainModel("res/models/Terrain001.obj");
-	GameObject object1(&terrainModel);
-	object1.m_translation = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -15.0f, 0.0f));
+	Texture grassTexture("res/img/Green.png", 1.0f);
+	Texture waterTexture("res/img/Blue.png", 1.0f);
+	Texture redTexture("res/img/RedThing.png", 1.0f);
 
-	Model shrekModel("res/models/GoodShrek.obj");
-	GameObject object2(&shrekModel);
-	object2.m_translation = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, -5.0f));
+	Model terrainModel("res/models/Terrain003.obj", &grassTexture);
+	GameObject object1(&terrainModel, 0.0f, -15.0f, 0.0f);
+	Model waterModel("res/models/Terrain003Water.obj", &waterTexture);
+	GameObject waterObject(&waterModel, 0.0f, -15.0f, 0.0f);
 
-	std::string shaderPath = "res/shaders/Basic.shader";
-	Shader shader(shaderPath);
+	Model shrekModel("res/models/GoodShrek.obj", &redTexture);
+	GameObject object2(&shrekModel, 0.0f, 0.0f, -5.0f);
+
+	Model lightModel("res/models/SickCube.obj", &redTexture);
+	GameObject lightObject(&lightModel, 0.0f, 20.0f, 0.0f);
 
 	Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 90.0f, 4.0f / 3.0f, 0.1f, 250.0f, input::mouseX, input::mouseY);
 
-	//glm::mat4 MVP = camera.getProjMat() * camera.getViewMat() * object1.m_translation * object1.m_rotationY;
-	GLCall(int viewLocation = glGetUniformLocation(shader.getProgramID(), "u_view"));
-	GLCall(glUniformMatrix4fv(viewLocation, 1, false, &camera.getViewMat()[0][0]));
+	std::string shaderPath = "res/shaders/LowPoly.shader";
+	Shader shader(shaderPath);
+	//Sends view, projection and model matricies to shader
+	shader.setUniformMatrix4fv("u_view", &camera.getViewMat()[0][0]);
+	shader.setUniformMatrix4fv("u_proj", &camera.getProjMat()[0][0]);
 
-	GLCall(int projLocation = glGetUniformLocation(shader.getProgramID(), "u_proj"));
-	GLCall(glUniformMatrix4fv(projLocation, 1, false, &camera.getProjMat()[0][0]));
-
-	glm::mat4 model1 = object1.m_translation * object1.m_rotationX * object1.m_rotationY * object1.m_rotationZ;
-	glm::mat4 model2 = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
+	glm::mat4 model1Mat = object1.m_translation * object1.m_rotationX * object1.m_rotationY * object1.m_rotationZ;
+	glm::mat4 model2Mat = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
 	GLCall(int modelLocation = glGetUniformLocation(shader.getProgramID(), "u_model"));
-	GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1[0][0]));
+	GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1Mat[0][0]));
 
 	GLCall(int lightLocation = glGetUniformLocation(shader.getProgramID(), "u_lightPos"));
-	GLCall(glUniform3f(lightLocation, 0.0f, 50.0f, 0.0f));
 
-	int width = 0;
-	int height = 0;
-	int bpp = 0;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("res/img/Grass.png", &width, &height, &bpp, 4);
+	GLCall(int cameraLocation = glGetUniformLocation(shader.getProgramID(), "u_cameraPos"));
+	GLCall(glUniform3fv(cameraLocation, 1, &camera.getPos()[0]));
 
-	unsigned int texture;
-	GLCall(glGenTextures(1, &texture));
-	GLCall(glBindTexture(GL_TEXTURE_2D, texture));
-	
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-	if (data) {
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-	}
-	else {
-		std::cout << "FAILED TO READ IMAGE" << std::endl;
-	}
-	stbi_image_free(data);
-
+	//Tells OpenGL to not render backs of triangles or objects behind other objects
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
-
-	std::cout << "obj1";
-	object1.m_model->printVertCount();
-	std::cout << "obj2";
-	object2.m_model->printVertCount();
-
+	//Makes OpenGL render lines instead of filled triangles
 	//glPolygonMode(GL_FRONT, GL_LINE);
 
+	double timer = 0;
+	unsigned int frameCounter = 0;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
+		//set's deltaTime
 		float currentTime = (float)glfwGetTime();
 		global::deltaTime = currentTime - global::previousTime;
 		global::previousTime = currentTime;
+		
+		//calculate fps
+		timer += global::deltaTime;
+		frameCounter++;
+		if (timer >= 1.0) {
+			timer -= 1.0;
+			std::cout << frameCounter << std::endl;
+			frameCounter = 0;
+		}
 
+		//keyboard and mouse movement
 		camera.processInput(window, global::deltaTime);
 		camera.rotate(input::mouseDeltaX, input::mouseDeltaY);
 
-		GLCall(glUniformMatrix4fv(viewLocation, 1, false, &camera.getViewMat()[0][0]));
-		GLCall(glUniformMatrix4fv(projLocation, 1, false, &camera.getProjMat()[0][0]));
-
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		//Closes window on esc
 		input::resetMouseDelta();
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, true);
 		}
 
-		//GLCall(glUseProgram(program));
+		//Update view matrix uniform in shader
+		shader.setUniformMatrix4fv("u_view", &camera.getViewMat()[0][0]);
+
+		/* Render here */
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//Binds model1s vertex and index array
 		glBindVertexArray(object1.m_vao);
-		model1 = object1.m_translation * object1.m_rotationX * object1.m_rotationY * object1.m_rotationZ;
-		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1[0][0]));
-		object1.draw();
+		//update modelMat and sends it to shader
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1Mat[0][0]));
+		object1.draw(shader);
+		glBindVertexArray(waterObject.m_vao);
+		waterObject.draw(shader);
 
 		glBindVertexArray(object2.m_vao);
 		object2.m_rotationY = glm::rotate(object2.m_rotationY, glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f));
-		//object2.m_translation = glm::translate(object2.m_translation, glm::vec3(0.0f, 0.0f, 0.0f));
-		model2 = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
-		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model2[0][0]));
+		model2Mat = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model2Mat[0][0]));
+		object2.draw(shader);
 
-		object2.draw();
+		glBindVertexArray(lightObject.m_vao);
+		glm::mat4 lObj = lightObject.m_translation * lightObject.m_rotationX * lightObject.m_rotationY * lightObject.m_rotationZ;
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &lObj[0][0]));
+		lightObject.draw(shader);
+		lightObject.move(0.0f, 0.0f, 0.0f);
+		GLCall(glUniform3fv(lightLocation, 1, &lightObject.m_pos[0]));
 
 		/* Swap front and back buffers */
 		GLCall(glfwSwapBuffers(window));

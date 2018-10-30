@@ -17,5 +17,8 @@ public:
 	shaderSources createShaderSources(const std::string& shaderPath);
 	unsigned int CreateShader(std::string& shaderSource, int type);
 
+	void setUniformMatrix4fv(const char* uniformName, float* value);
+	void setUniformFloat(const char* uniformName, float value);
+
 	inline unsigned int getProgramID() { return m_programID; };
 };

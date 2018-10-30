@@ -5,11 +5,15 @@
 #include <sstream>
 #include <array>
 
-Model::Model(const char* modelPath) {
-	m_modelData = modelLoader(modelPath);
+Model::Model(const char* modelPath, Texture* modelTexture)
+		: m_modelTexture(modelTexture), m_modelData(modelLoader(modelPath)) {
 }
 
 Model::~Model() {
+}
+
+Texture * Model::getTexture() {
+	return m_modelTexture;
 }
 
 modelData Model::modelLoader(const char* modelPath) {

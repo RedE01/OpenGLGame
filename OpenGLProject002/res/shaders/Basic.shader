@@ -23,11 +23,14 @@ void main() {
 #shader fragment
 #version 330 core
 
-float ambientStrength = 0.2;
+float ambientStrength = 0.1;
+float specularStrength = 0.5;
 
 out vec4 FragColor;
 uniform sampler2D u_texture;
 uniform vec3 u_lightPos;
+uniform vec3 u_cameraPos;
+uniform float u_tiles;
 
 in vec2 v_texCoord;
 in vec3 v_normals;
@@ -40,6 +43,12 @@ void main() {
 	float diff = max(dot(norm, lightDir), 0);
 	vec3 diffuse = diff * vec3(1.0f);
 
-	vec4 texColor = texture(u_texture, v_texCoord);
-	FragColor = texColor * vec4(vec3(ambientStrength) + diffuse, 1.0f);
+	vec3 viewDir = normalize(u_cameraPos - v_fragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	vec3 specular = vec3(specularStrength * spec);
+
+	vec4 texColor = texture(u_texture, v_texCoord * u_tiles);
+	FragColor = vec4(vec3(ambientStrength) + diffuse + specular, 1.0f) * texColor;
 };

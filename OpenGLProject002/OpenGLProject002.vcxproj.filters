@@ -51,6 +51,9 @@
     <ClCompile Include="src\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vendor\glm\detail\_features.hpp">
@@ -809,6 +812,12 @@
     <ClInclude Include="src\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\vendor\glm\detail\func_common.inl">
@@ -1199,5 +1208,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\LowPoly.shader" />
   </ItemGroup>
 </Project>

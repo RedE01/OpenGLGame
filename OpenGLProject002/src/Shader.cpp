@@ -3,6 +3,8 @@
 #include <GL\glew.h>
 #include <fstream>
 #include <sstream>
+#include <GL\glew.h>
+#include "Debug.h"
 
 Shader::Shader(std::string & shaderPath) {
 	m_programID = glCreateProgram();
@@ -73,4 +75,14 @@ unsigned int Shader::CreateShader(std::string& shaderSource, int type) {
 		GLCall(glDeleteShader(shader));
 	}
 	return shader;
+}
+
+void Shader::setUniformMatrix4fv(const char * uniformName, float * value) {
+	GLCall(int viewLocation = glGetUniformLocation(m_programID, uniformName));
+	GLCall(glUniformMatrix4fv(viewLocation, 1, false, value));
+}
+
+void Shader::setUniformFloat(const char * uniformName, float value) {
+	GLCall(int viewLocation = glGetUniformLocation(m_programID, uniformName));
+	GLCall(glUniform1f(viewLocation, value));
 }

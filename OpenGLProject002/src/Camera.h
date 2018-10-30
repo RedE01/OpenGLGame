@@ -30,4 +30,7 @@ public:
 	inline glm::mat4 getViewMat() {
 		return m_view;
 	}
+	inline glm::vec3 getPos() {
+		return m_cameraPos;
+	}
 };
