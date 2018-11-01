@@ -1,12 +1,17 @@
 #include "Model.h"
-#include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <array>
 
-Model::Model(const char* modelPath, Texture* modelTexture)
-		: m_modelTexture(modelTexture), m_modelData(modelLoader(modelPath)) {
+Model::Model(const char* modelPath, Texture* modelTexture, bool isTerrain)
+		: m_modelTexture(modelTexture), m_modelData(modelLoader(modelPath)), m_isTerrain(isTerrain) {
+}
+
+Model::Model(unsigned int size, Texture* modelTexture) :
+		 m_modelTexture(modelTexture) {
+
+	//terrain things i guess
 }
 
 Model::~Model() {
@@ -129,8 +134,31 @@ modelData Model::modelLoader(const char* modelPath) {
 	unsigned int indexCount = vertCount / 9;
 
 	unsigned int* indicies = new unsigned int[indexCount];
-	for (unsigned int i = 0; i < indexCount; i++) {
-		indicies[i] = i;
+	unsigned int iterator = 0;
+	for (unsigned int i = 0; i < indexCount; i+=3) {
+		if (i < indexCount / 2) {
+			indicies[i] = i;
+			indicies[i + 1] = i + 1;
+			indicies[i + 2] = i + 2;
+		}
+		else {
+			indicies[i] = i + 1;
+			indicies[i + 1] = i + 2;
+			indicies[i + 2] = i;
+		}
 	}
-	return { verticies, vertCount, indicies, indexCount };
+
+	std::array<std::array<float, 101>, 101> heightMap;
+
+	if (m_isTerrain) {
+		unsigned int iterator = 1;
+		for (int y = 0; y < 101; y++) {
+			for (int x = 0; x < 101; x++) {
+				heightMap[x][y] = vert[iterator];
+				iterator+=3;
+			}
+		}
+	}
+
+	return { verticies, vertCount, indicies, indexCount, heightMap };
 }

@@ -1,50 +1,16 @@
 #include "Camera.h"
+#include <iostream>
+#include "Time.h"
 
 Camera::Camera(glm::vec3 pos, float yaw, float pitch, float fov, float aspectRatio, float nearPlane, float farPlane, float mouseX, float mouseY)
-		: m_cameraPos(pos), yaw(yaw -90), pitch(pitch), m_proj(glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane)),
+		: m_cameraPos(pos), m_cameraForce(0.0f, 0.0f, 0.0f), yaw(yaw -90), pitch(pitch), m_proj(glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane)),
 			m_view(glm::lookAt(m_cameraPos, m_cameraPos + cameraFront, m_cameraUp)), cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)) {
 
 }
 
-void Camera::processInput(GLFWwindow* window, float& deltaTime) {
-	float movementSpeed = 4.0f * deltaTime;
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
-		movementSpeed = 6.0f * deltaTime;
-	}
-	if (glfwGetKey(window, GLFW_KEY_W)) {
-		move(0.0f, 0.0f, movementSpeed);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A)) {
-		move(-movementSpeed, 0.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_S)) {
-		move(0.0f, 0.0f, -movementSpeed);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D)) {
-		move(movementSpeed, 0.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_Q)) {
-		move(0.0f, -movementSpeed, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_E)) {
-		move(0.0f, movementSpeed, 0.0f);
-	}
-}
 
-void Camera::move(float x, float y, float z) {
-	if (x) {
-		glm::vec3 movement = glm::cross(cameraFront, m_cameraUp);
-		movement = glm::normalize(glm::vec3(movement.x, movement.y, movement.z));
-		m_cameraPos += movement * x;
-	}
-	if (y) {
-		glm::vec3 movement = glm::normalize(glm::vec3(m_cameraUp.x, m_cameraUp.y, m_cameraUp.z));
-		m_cameraPos += movement * y;
-	}
-	if (z) {
-		glm::vec3 movement = glm::normalize(glm::vec3(cameraFront.x, cameraFront.y, cameraFront.z));
-		m_cameraPos += movement * z;
-	}
+void Camera::setPos(float x, float y, float z) {
+	m_cameraPos = { x, y, z };
 }
 
 void Camera::rotate(float rotX, float rotY) {
@@ -70,4 +36,12 @@ void Camera::rotate(float rotX, float rotY) {
 	m_direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
 
 	m_view = glm::lookAt(m_cameraPos, m_cameraPos + cameraFront, m_cameraUp);
+}
+
+void Camera::addForce(float x, float y, float z) {
+	m_cameraForce = glm::vec3( m_cameraForce.x + x, m_cameraForce.y + y, m_cameraForce.z + z );
+}
+
+void Camera::setForce(float x, float y, float z) {
+	m_cameraForce = { x, y, z };
 }

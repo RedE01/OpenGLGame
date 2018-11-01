@@ -2,36 +2,21 @@
 #include <GLFW\glfw3.h>
 
 namespace input {
-	extern float mouseX = 0;
-	extern float mouseY = 0;
+	extern GLFWwindow* window;
+	extern float mouseX;
+	extern float mouseY;
 
-	extern float mouseLastX = 0;
-	extern float mouseLastY = 0;
+	extern float mouseLastX;
+	extern float mouseLastY;
 
-	extern float mouseDeltaX = 0;
-	extern float mouseDeltaY = 0;
+	extern float mouseDeltaX;
+	extern float mouseDeltaY;
 
-	extern bool firstMouse = true;
+	extern bool firstMouse;
 
-	void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-		mouseX = xpos;
-		mouseY = ypos;
+	extern void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-		if (firstMouse) {
-			mouseLastX = xpos;
-			mouseLastY = ypos;
-			firstMouse = false;
-		}
+	extern void resetMouseDelta();
 
-		mouseDeltaX = xpos - mouseLastX;
-		mouseDeltaY = mouseLastY - ypos;
-
-		mouseLastX = xpos;
-		mouseLastY = ypos;
-	}
-
-	void resetMouseDelta() {
-		mouseDeltaX = 0;
-		mouseDeltaY = 0;
-	}
+	extern bool isKeyDown(int key);
 }

@@ -15,6 +15,9 @@ GameObject::GameObject(Model* modelRef, float x, float y, float z)
 	genertateIBO(m_ibo, &m_model->m_modelData);
 }
 
+GameObject::GameObject(float x, float y, float z) {
+}
+
 GameObject::~GameObject() {
 }
 

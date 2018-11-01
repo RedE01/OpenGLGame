@@ -4,6 +4,7 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <stb_image\stb_image.h>
 #include "Debug.h"
+#include "Time.h"
 
 #include <iostream>
 
@@ -12,11 +13,8 @@
 #include "Input.h"
 #include "GameObject.h"
 #include "Texture.h"
-
-namespace global {
-	float deltaTime = 0.0f;
-	float previousTime = 0.0f;
-}
+#include "Terrain.h"
+#include "Player.h"
 
 int main(void) {
 	GLFWwindow* window;
@@ -43,23 +41,25 @@ int main(void) {
 		std::cout << "ERROR::GLEW_INIT_FAILED!" << std::endl;
 		glfwTerminate();
 	}
+	input::window = window;
 
 	Texture grassTexture("res/img/Green.png", 1.0f);
 	Texture waterTexture("res/img/Blue.png", 1.0f);
 	Texture redTexture("res/img/RedThing.png", 1.0f);
 
-	Model terrainModel("res/models/Terrain003.obj", &grassTexture);
-	GameObject object1(&terrainModel, 0.0f, -15.0f, 0.0f);
-	Model waterModel("res/models/Terrain003Water.obj", &waterTexture);
-	GameObject waterObject(&waterModel, 0.0f, -15.0f, 0.0f);
+	Model terrainModel("res/models/Terrain004.obj", &grassTexture, true);
+	GameObject terrain(&terrainModel, 0.0f, -15.0f, 0.0f);
+	/*Model waterModel("res/models/Terrain003Water.obj", &waterTexture);
+	GameObject waterObject(&waterModel, 0.0f, -15.0f, 0.0f);*/
 
-	Model shrekModel("res/models/GoodShrek.obj", &redTexture);
+	Model shrekModel("res/models/GoodShrek.obj", &redTexture, false);
 	GameObject object2(&shrekModel, 0.0f, 0.0f, -5.0f);
 
-	Model lightModel("res/models/SickCube.obj", &redTexture);
+	Model lightModel("res/models/SickCube.obj", &redTexture, false);
 	GameObject lightObject(&lightModel, 0.0f, 20.0f, 0.0f);
 
 	Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 90.0f, 4.0f / 3.0f, 0.1f, 250.0f, input::mouseX, input::mouseY);
+	Player player(camera, 0.0f, 0.0f, 0.0f, 2.0f, 5.0f, &terrain);
 
 	std::string shaderPath = "res/shaders/LowPoly.shader";
 	Shader shader(shaderPath);
@@ -67,10 +67,10 @@ int main(void) {
 	shader.setUniformMatrix4fv("u_view", &camera.getViewMat()[0][0]);
 	shader.setUniformMatrix4fv("u_proj", &camera.getProjMat()[0][0]);
 
-	glm::mat4 model1Mat = object1.m_translation * object1.m_rotationX * object1.m_rotationY * object1.m_rotationZ;
+	glm::mat4 terrainMat = terrain.m_translation * terrain.m_rotationX * terrain.m_rotationY * terrain.m_rotationZ;
 	glm::mat4 model2Mat = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
 	GLCall(int modelLocation = glGetUniformLocation(shader.getProgramID(), "u_model"));
-	GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1Mat[0][0]));
+	GLCall(glUniformMatrix4fv(modelLocation, 1, false, &terrainMat[0][0]));
 
 	GLCall(int lightLocation = glGetUniformLocation(shader.getProgramID(), "u_lightPos"));
 
@@ -92,11 +92,11 @@ int main(void) {
 	while (!glfwWindowShouldClose(window)) {
 		//set's deltaTime
 		float currentTime = (float)glfwGetTime();
-		global::deltaTime = currentTime - global::previousTime;
-		global::previousTime = currentTime;
+		time::deltaTime = currentTime - time::previousTime;
+		time::previousTime = currentTime;
 		
 		//calculate fps
-		timer += global::deltaTime;
+		timer += time::deltaTime;
 		frameCounter++;
 		if (timer >= 1.0) {
 			timer -= 1.0;
@@ -104,9 +104,7 @@ int main(void) {
 			frameCounter = 0;
 		}
 
-		//keyboard and mouse movement
-		camera.processInput(window, global::deltaTime);
-		camera.rotate(input::mouseDeltaX, input::mouseDeltaY);
+		player.Update();
 
 		//Closes window on esc
 		input::resetMouseDelta();
@@ -121,12 +119,12 @@ int main(void) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//Binds model1s vertex and index array
-		glBindVertexArray(object1.m_vao);
+		glBindVertexArray(terrain.m_vao);
 		//update modelMat and sends it to shader
-		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model1Mat[0][0]));
-		object1.draw(shader);
-		glBindVertexArray(waterObject.m_vao);
-		waterObject.draw(shader);
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &terrainMat[0][0]));
+		terrain.draw(shader);
+		/*glBindVertexArray(waterObject.m_vao);
+		waterObject.draw(shader);*/
 
 		glBindVertexArray(object2.m_vao);
 		object2.m_rotationY = glm::rotate(object2.m_rotationY, glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f));

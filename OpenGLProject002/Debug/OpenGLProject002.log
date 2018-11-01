@@ -1,10 +1,2 @@
-﻿  Main.cpp
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(18): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(22): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(26): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(27): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(29): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\edvin.lundqvistster\documents\visual studio 2017\projects\openglproject002\openglproject002\src\input.h(30): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+﻿  Camera.cpp
   OpenGLProject002.vcxproj -> C:\Users\edvin.lundqvistster\Documents\Visual Studio 2017\Projects\OpenGLProject002\Debug\OpenGLProject002.exe

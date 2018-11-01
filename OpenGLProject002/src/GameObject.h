@@ -20,6 +20,7 @@ public:
 	glm::mat4 m_rotationZ;
 public: 
 	GameObject(Model* modelRef, float x, float y, float z);
+	GameObject(float x, float y, float z);
 	~GameObject();
 
 	void draw(Shader& shader);
