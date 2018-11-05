@@ -8,7 +8,6 @@ Camera::Camera(glm::vec3 pos, float yaw, float pitch, float fov, float aspectRat
 
 }
 
-
 void Camera::setPos(float x, float y, float z) {
 	m_cameraPos = { x, y, z };
 }

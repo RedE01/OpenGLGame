@@ -47,19 +47,17 @@ int main(void) {
 	Texture waterTexture("res/img/Blue.png", 1.0f);
 	Texture redTexture("res/img/RedThing.png", 1.0f);
 
-	Model terrainModel("res/models/Terrain004.obj", &grassTexture, true);
+	Terrain terrainModel(200, 100, &grassTexture);
 	GameObject terrain(&terrainModel, 0.0f, -15.0f, 0.0f);
-	/*Model waterModel("res/models/Terrain003Water.obj", &waterTexture);
-	GameObject waterObject(&waterModel, 0.0f, -15.0f, 0.0f);*/
 
-	Model shrekModel("res/models/GoodShrek.obj", &redTexture, false);
+	Model shrekModel("res/models/GoodShrek.obj", &redTexture);
 	GameObject object2(&shrekModel, 0.0f, 0.0f, -5.0f);
 
-	Model lightModel("res/models/SickCube.obj", &redTexture, false);
-	GameObject lightObject(&lightModel, 0.0f, 20.0f, 0.0f);
+	Model lightModel("res/models/SickCube.obj", &redTexture);
+	GameObject lightObject(&lightModel, 0.0f, 50.0f, 0.0f);
 
 	Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 90.0f, 4.0f / 3.0f, 0.1f, 250.0f, input::mouseX, input::mouseY);
-	Player player(camera, 0.0f, 0.0f, 0.0f, 2.0f, 5.0f, &terrain);
+	Player player(camera, 0.0f, 0.0f, 0.0f, 2.0f, 5.0f, &terrainModel);
 
 	std::string shaderPath = "res/shaders/LowPoly.shader";
 	Shader shader(shaderPath);
@@ -82,6 +80,7 @@ int main(void) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+	glClearColor(0.4f, 0.8f, 0.9f, 1.0f);
 
 	//Makes OpenGL render lines instead of filled triangles
 	//glPolygonMode(GL_FRONT, GL_LINE);
@@ -100,7 +99,7 @@ int main(void) {
 		frameCounter++;
 		if (timer >= 1.0) {
 			timer -= 1.0;
-			std::cout << frameCounter << std::endl;
+			//std::cout << frameCounter << std::endl;
 			frameCounter = 0;
 		}
 
@@ -122,15 +121,16 @@ int main(void) {
 		glBindVertexArray(terrain.m_vao);
 		//update modelMat and sends it to shader
 		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &terrainMat[0][0]));
-		terrain.draw(shader);
-		/*glBindVertexArray(waterObject.m_vao);
-		waterObject.draw(shader);*/
 
 		glBindVertexArray(object2.m_vao);
 		object2.m_rotationY = glm::rotate(object2.m_rotationY, glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model2Mat = object2.m_translation * object2.m_rotationX * object2.m_rotationY * object2.m_rotationZ;
 		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &model2Mat[0][0]));
 		object2.draw(shader);
+
+		glBindVertexArray(terrain.m_vao);
+		GLCall(glUniformMatrix4fv(modelLocation, 1, false, &terrainMat[0][0]));
+		terrain.draw(shader);
 
 		glBindVertexArray(lightObject.m_vao);
 		glm::mat4 lObj = lightObject.m_translation * lightObject.m_rotationX * lightObject.m_rotationY * lightObject.m_rotationZ;

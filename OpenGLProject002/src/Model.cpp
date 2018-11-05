@@ -4,12 +4,12 @@
 #include <sstream>
 #include <array>
 
-Model::Model(const char* modelPath, Texture* modelTexture, bool isTerrain)
-		: m_modelTexture(modelTexture), m_modelData(modelLoader(modelPath)), m_isTerrain(isTerrain) {
+Model::Model(const char* modelPath, Texture* modelTexture)
+		: m_modelTexture(modelTexture), m_modelData(modelLoader(modelPath)) {
 }
 
-Model::Model(unsigned int size, Texture* modelTexture) :
-		 m_modelTexture(modelTexture) {
+Model::Model(modelData mData, Texture* modelTexture) :
+		 m_modelData(mData), m_modelTexture(modelTexture) {
 
 	//terrain things i guess
 }
@@ -148,17 +148,5 @@ modelData Model::modelLoader(const char* modelPath) {
 		}
 	}
 
-	std::array<std::array<float, 101>, 101> heightMap;
-
-	if (m_isTerrain) {
-		unsigned int iterator = 1;
-		for (int y = 0; y < 101; y++) {
-			for (int x = 0; x < 101; x++) {
-				heightMap[x][y] = vert[iterator];
-				iterator+=3;
-			}
-		}
-	}
-
-	return { verticies, vertCount, indicies, indexCount, heightMap };
+	return { verticies, vertCount, indicies, indexCount };
 }

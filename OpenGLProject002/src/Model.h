@@ -9,18 +9,16 @@ struct modelData {
 	unsigned int verticiesCount;
 	unsigned int* indicies;
 	unsigned int indiciesCount;
-	std::array<std::array<float, 101>, 101> heightMap;
 };
 
 class Model {
-private:
+protected:
 	Texture* m_modelTexture;
-	bool m_isTerrain;
 public:
 	modelData m_modelData;
 public:
-	Model(const char* modelPath, Texture* modelTexture, bool isTerrain);
-	Model(unsigned int size, Texture* modelTexture);
+	Model(const char* modelPath, Texture* modelTexture);
+	Model(modelData mData, Texture* modelTexture);
 	~Model();
 
 	Texture* getTexture();

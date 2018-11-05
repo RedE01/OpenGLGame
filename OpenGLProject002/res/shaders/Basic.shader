@@ -2,10 +2,10 @@
 #version 330 core
 
 layout(location = 0) in vec4 position;
-layout(location = 1) in vec2 texCoord;
-layout(location = 2) in vec3 normals;
+//layout(location = 1) in vec2 texCoord;
+layout(location = 1) in vec3 normals;
 
-out vec2 v_texCoord;
+//out vec2 v_texCoord;
 out vec3 v_normals;
 out vec3 v_fragPos;
 
@@ -16,7 +16,7 @@ uniform mat4 u_proj;
 void main() {
 	gl_Position = u_proj * u_view * u_model * position;
 	v_fragPos = vec3(u_model * position);
-	v_texCoord = texCoord;
+	//v_texCoord = texCoord;
 	v_normals = mat3(transpose(inverse(u_model))) * normals;
 };
 
@@ -32,7 +32,7 @@ uniform vec3 u_lightPos;
 uniform vec3 u_cameraPos;
 uniform float u_tiles;
 
-in vec2 v_texCoord;
+//in vec2 v_texCoord;
 in vec3 v_normals;
 in vec3 v_fragPos;
 
@@ -49,6 +49,7 @@ void main() {
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = vec3(specularStrength * spec);
 
-	vec4 texColor = texture(u_texture, v_texCoord * u_tiles);
+	//vec4 texColor = texture(u_texture, v_texCoord * u_tiles);
+	vec4 texColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	FragColor = vec4(vec3(ambientStrength) + diffuse + specular, 1.0f) * texColor;
 };

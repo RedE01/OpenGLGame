@@ -3,7 +3,7 @@
 #include "Time.h"
 #include <algorithm>
 
-Player::Player(Camera& camera, float x, float y, float z, float height, float speed, GameObject* terrainObj) 
+Player::Player(Camera& camera, float x, float y, float z, float height, float speed, Terrain* terrainObj) 
 		: m_camera(&camera), m_pos(x, y, z), m_height(height), m_speed(speed), m_terrainObj(terrainObj) {
 
 }
@@ -39,7 +39,6 @@ void Player::calculateMovement() {
 	}
 	if (input::isKeyDown(GLFW_KEY_SPACE)) {
 		if (!jumpKeyPressed) {
-			std::cout << jumpKeyPressed << ", " << isGrounded << std::endl;
 			if(isGrounded)
 				m_force.y = 0.08f;
 		}
@@ -66,17 +65,17 @@ void Player::calculateMovement() {
 }
 
 void Player::calculateTerrainCollision() {
-	unsigned int hTerrainSize = 50;
+	unsigned int hTerrainSize = 100;
 	unsigned int tVertX = std::floor(m_pos.x + hTerrainSize);
 	unsigned int tVertZ = std::floor(m_pos.z + hTerrainSize);
-	tVertX = std::max(1.0f, std::min((float)tVertX, 99.0f));
-	tVertZ = std::max(1.0f, std::min((float)tVertZ, 99.0f));
+	tVertX = std::max(1.0f, std::min((float)tVertX, (float)(hTerrainSize * 2 - 1)));
+	tVertZ = 200 - std::max(1.0f, std::min((float)tVertZ, (float)(hTerrainSize  * 2 - 1)));
 	float dX = m_pos.x - std::floor(m_pos.x);
 	float dZ = m_pos.z - std::floor(m_pos.z);
 
-	float hX = m_terrainObj->m_model->m_modelData.heightMap[100 - tVertZ][tVertX] * dX + m_terrainObj->m_model->m_modelData.heightMap[100 - tVertZ][tVertX - 1] * (1.0f - dX);
-	float hX2 = m_terrainObj->m_model->m_modelData.heightMap[100 - tVertZ + 1][tVertX] * dX + m_terrainObj->m_model->m_modelData.heightMap[100 - tVertZ + 1][tVertX - 1] * (1.0f - dX);
-	float hFinal = hX * (dZ)+hX2 * (1.0f - dZ) + m_terrainObj->m_pos.y;
+	float hX1 = m_terrainObj->getHeight(tVertZ, tVertX) * dX + m_terrainObj->getHeight(tVertZ + 1,     tVertX) * (1.0f - dX);
+	float hX2 = m_terrainObj->getHeight(tVertZ, tVertX + 1) * dX + m_terrainObj->getHeight(tVertZ + 1, tVertX + 1) * (1.0f - dX);
+	float hFinal = hX1 * (dZ)+hX2 * (1.0f - dZ) - 13.0f;
 
 	if (m_pos.y > hFinal) {
 		isGrounded = false;
@@ -89,7 +88,7 @@ void Player::calculateTerrainCollision() {
 		m_force = { 0.0f, 0.0f, 0.0f };
 		m_pos = { m_pos.x, hFinal, m_pos.z };
 	}
-	if (m_pos.y - hFinal < 0.1f) {
+	if (m_pos.y - hFinal < 0.2f) {
 		isGrounded = true;
 	}
 }

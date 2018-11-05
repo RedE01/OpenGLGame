@@ -1,15 +1,17 @@
 #pragma once
-#include "GameObject.h"
+#include "Model.h"
+#include "Texture.h"
 #include <glm\glm.hpp>
 
-class Terrain : public GameObject{
+class Terrain : public Model {
 private:
 	unsigned int m_size;
-	unsigned int m_verticiesCount;
-	glm::vec3 m_verticies[10000];
-	unsigned int m_indicies[58806];
+	float* m_heightMap;
 public:
-	Terrain(unsigned int size, unsigned int verticiesCount);
+	Terrain(unsigned int size, unsigned int verticiesCount, Texture* texture);
 	~Terrain();
 
+	float getHeight(int x, int z);
+private:
+	modelData generateTerrainModelData(int size);
 };
